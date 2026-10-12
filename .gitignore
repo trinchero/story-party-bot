@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3*
+*.lock
+.DS_Store
+data/
+.pytest_cache/
+.env.*
+!.env.example
+
+# Impostazioni locali IDE
+.idea/
+*.iml

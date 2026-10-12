@@ -1,0 +1,4 @@
+*
+!requirements.txt
+!narrative_bot/
+!narrative_bot/*.py

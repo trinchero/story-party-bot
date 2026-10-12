@@ -1,0 +1,314 @@
+GUÍA PARA EL ANFITRIÓN DE LA CASA
+Cómo preparar la plantilla de un juego narrativo
+
+La plantilla Excel contiene tu historia, los personajes y los mensajes que
+recibirán los jugadores. Tú escribes el contenido y decides cuándo enviarlo
+durante la partida. El bot no inventa pistas ni avanza por su cuenta.
+
+Cuando termines, entrega el archivo a Andrea, que lo importará en el programa.
+Tú no tienes que cargar el Excel en Telegram ni usar el Terminal.
+
+
+1. ANTES DE EMPEZAR
+
+Haz una copia de la plantilla y ponle un nombre, por ejemplo:
+El_misterio_del_reloj.xlsx
+
+Para dos jugadores puedes partir de:
+Plantilla_juego_Telegram_demo_2_jugadores.xlsx
+
+Para tres jugadores puedes partir de:
+Plantilla_juego_Telegram_demo.xlsx
+
+Conserva estas cuatro pestañas con sus nombres exactos:
+Guia, Personajes, Fases y Mensajes.
+
+No cambies los encabezados de la primera fila: respeta espacios y acentos.
+Escribe debajo de ellos. Puedes añadir o eliminar filas completas.
+No combines celdas y no uses fórmulas. Guarda el resultado como .xlsx.
+
+Cada personaje necesita un jugador distinto. Tú eres la organizador y no
+ocupas un personaje: para dos personajes hacen falta tú y otros dos usuarios.
+No dejes personajes de ejemplo que nadie vaya a interpretar.
+
+
+2. QUÉ VE CADA PERSONA
+
+Solo tú, dentro del panel de administración:
+- Todo el contenido de Guia.
+- Las notas de Fases y Mensajes.
+- Los títulos administrativos y las vistas previas de los mensajes.
+
+Cada jugador:
+- Su propia Ficha privada, cuando autorices y envíes las fichas.
+- Los textos de Mensajes que le correspondan, cuando los envíes.
+
+Descripción sirve para organizar los personajes; no se envía como ficha.
+Si el jugador debe saber algo, inclúyelo en Ficha privada o en un Texto
+dirigido a ese personaje.
+
+No incluyas tokens, contraseñas ni ID de Telegram en el Excel. Las personas
+se asignan a los personajes después, mediante los botones del bot.
+
+
+3. PESTAÑA «Guia»: TU GUION PRIVADO
+
+Columnas: Campo | Contenido
+
+En Campo escribe el tema y en Contenido su explicación. Puedes conservar
+las filas de la plantilla y sustituir la historia de ejemplo.
+
+Filas recomendadas:
+
+Título
+  El misterio del reloj
+
+Organizadora
+  El anfitrión de la casa, narrador y administrador. No interpreta un personaje.
+
+Historia
+  Durante una cena desaparece un reloj de una vitrina. Dos invitados
+  deben explicar dónde estaban y comparar las pistas.
+
+Solución privada
+  Escribe aquí la verdad completa: quién lo hizo, cómo, por qué y qué
+  pruebas permiten descubrirlo. Esto no se envía a los jugadores.
+
+Duración orientativa
+  Por ejemplo: 15 minutos. Es solo una referencia para ti, no un temporizador.
+
+Instrucciones para dirigir
+  Explica cuándo dejar conversar, cuándo pedir acusaciones y cuándo revelar
+  la solución. Estas instrucciones tampoco ejecutan acciones automáticas.
+
+Completa las dos columnas de cada fila que conserves. Es recomendable mantener
+el Campo «Título»: el bot lo utiliza como nombre de la partida.
+
+IMPORTANTE: escribir la solución aquí no hace que se envíe al final.
+Para revelarla necesitas también una fila final en Mensajes.
+
+
+4. PESTAÑA «Personajes»: UN PERSONAJE POR FILA
+
+Columnas: Código | Nombre | Descripción | Ficha privada
+
+Código
+  Es la etiqueta que conecta al personaje con sus mensajes.
+  Ejemplos: LUCIA, DIEGO, INVITADO_1.
+  Usa letras A–Z en MAYÚSCULAS, números, guion o guion bajo.
+  No uses espacios, tildes ni ñ. Máximo 32 caracteres.
+  Cada código debe ser distinto. No uses TODOS como código de personaje.
+
+Nombre
+  El nombre que quieres mostrar para el personaje. Aquí sí puedes escribir
+  tildes y espacios, por ejemplo: Lucía Fernández.
+
+Descripción
+  Un resumen para ti: «Restauradora de arte, amiga de la anfitriona».
+
+Ficha privada
+  El texto inicial que recibirá solamente quien interprete ese personaje.
+  Escribe directamente al jugador: «Eres Lucía…».
+  Incluye su identidad, relaciones, lo que sabe al empezar, sus secretos,
+  su objetivo y las reglas necesarias para interpretarlo.
+
+Ejemplo de una fila:
+  Código: LUCIA
+  Nombre: Lucía
+  Descripción: Restauradora de arte y amiga de la anfitriona.
+  Ficha privada: Eres Lucía. Has venido a cenar a casa de tu amiga.
+  Antes de cenar viste la vitrina cerrada. Tu objetivo es descubrir qué
+  ocurrió con el reloj. Comparte tus pistas de palabra, sin enseñar tu ficha.
+
+Las cuatro columnas son obligatorias. No copies las fichas en Mensajes:
+el bot ya las prepara por separado, antes de la fase 1.
+
+Si añades o eliminas un personaje, revisa también todos los destinatarios,
+las pistas, las coartadas y la solución. No debe faltar una persona necesaria
+para entender la historia.
+
+
+5. PESTAÑA «Fases»: LOS CAPÍTULOS DE LA PARTIDA
+
+Columnas: Fase | Título | Notas admin
+
+Fase
+  Numera 1, 2, 3… sin saltos ni números repetidos.
+  No escribas «Fase 1» en esta columna: escribe solo el número 1.
+  No añadas fase 0: el bot la reserva para las fichas privadas.
+
+Título
+  Un nombre breve para reconocer el capítulo.
+
+Notas admin
+  Indicaciones privadas para ti. Pueden quedar vacías.
+
+Ejemplo:
+  1 | La desaparición | Presenta el misterio y deja que se presenten.
+  2 | Las pistas      | Deja que comparen sus versiones antes de continuar.
+  3 | La acusación    | Recoge las respuestas antes de enviar la solución.
+
+Cada fase debe tener al menos un mensaje en la pestaña Mensajes.
+Abrir una fase cierra la anterior, pero no envía ningún texto por sí solo.
+
+
+6. PESTAÑA «Mensajes»: LO QUE RECIBIRÁN LOS JUGADORES
+
+Columnas:
+Fase | Orden | Destinatarios | Título admin | Texto | Notas admin
+
+Cada fila representa UN mensaje de la historia.
+
+Fase
+  El número de una fase que exista en la pestaña Fases.
+
+Orden
+  La posición del mensaje dentro de esa fase: 1, 2, 3…
+  Al empezar otra fase, vuelve a 1.
+  No puede haber saltos ni dos mensajes con el mismo orden en una fase.
+  Los mensajes privados y colectivos comparten esta misma secuencia.
+
+Destinatarios
+  TODOS        → llega a todos los jugadores asignados, en sus chats privadas.
+  LUCIA        → llega solo a quien interprete LUCIA.
+  LUCIA,DIEGO  → llega a esos dos personajes.
+
+  Utiliza los códigos exactos de Personajes, no nombres de personas reales,
+  nombres de usuario ni ID de Telegram.
+  Separa varios códigos con comas. No uses «y», punto y coma o barras.
+  No repitas un código en la misma celda. Escribe TODOS solo, sin mezclarlo
+  con otros códigos. No dejes esta celda vacía.
+
+Título admin
+  Una etiqueta para reconocer el mensaje, por ejemplo «La llave encontrada».
+  Solo aparece en tus controles; no se envía como parte del mensaje.
+
+Texto
+  El contenido que recibirá el jugador. Escríbelo tal como quieras que lo lea.
+  Puedes usar varios párrafos dentro de una celda.
+  No pongas aquí instrucciones privadas como «Anfitrión de la casa, espera cinco minutos».
+  El bot envía texto simple: no convierte **asteriscos** en negrita ni ejecuta
+  instrucciones escritas en el texto.
+
+Notas admin
+  Recordatorios para ti, por ejemplo «Espera a que ambos respondan».
+  Puedes dejarlas vacías. Una nota de espera no programa ningún envío.
+
+Todas las columnas son obligatorias salvo Notas admin.
+
+Ejemplo de secuencia para la fase 1:
+
+  Fase: 1
+  Orden: 1
+  Destinatarios: TODOS
+  Título admin: La desaparición
+  Texto: El reloj ha desaparecido de la vitrina. Nadie ha salido de la casa.
+  ¿Dónde estabais cuando se apagaron las luces?
+  Notas admin: Deja que ambos expliquen su versión.
+
+  Fase: 1
+  Orden: 2
+  Destinatarios: LUCIA
+  Título admin: La llave
+  Texto: Antes del apagón viste una llave pequeña junto a la vitrina.
+  Notas admin: Pista privada para Lucía.
+
+  Fase: 1
+  Orden: 3
+  Destinatarios: DIEGO
+  Título admin: El ruido
+  Texto: Durante el apagón oíste el ruido de una puerta junto al comedor.
+  Notas admin: Deja que comparen las pistas antes de cambiar de fase.
+
+Este ejemplo explica el formato; no es una historia completa para importar.
+Si lo usas en tu plantilla, LUCIA y DIEGO deben existir en Personajes.
+
+Un mensaje para TODOS cuenta como un mensaje de historia. Con dos jugadores
+son dos entregas; con tres jugadores son tres entregas.
+
+
+7. CÓMO PREPARAR EL FINAL
+
+En la última fase, crea dos mensajes separados para TODOS:
+
+Penúltimo mensaje: las acusaciones.
+  Pide a cada jugador que explique quién cree que es responsable y por qué.
+  En Notas admin escribe: «Esperar a que todos respondan».
+
+Último mensaje: la solución.
+  Explica qué pasó y cómo encajan las pistas.
+  En Notas admin escribe: «Enviar solo después de las acusaciones».
+
+Durante la partida tú decides cuándo pulsar Enviar próximo. El bot no
+comprueba si todos han acusado ni espera automáticamente por una nota.
+
+
+8. REVISA LA HISTORIA ANTES DE ENTREGARLA
+
+[ ] He guardado una copia en formato .xlsx.
+[ ] Mantengo Guia, Personajes, Fases y Mensajes con sus encabezados originales.
+[ ] He sustituido la historia de ejemplo también en las notas y la solución.
+[ ] Hay exactamente un personaje por jugador; El anfitrión de la casa no ocupa uno.
+[ ] Todos los códigos son únicos y todos los personajes tienen ficha privada.
+[ ] Las fases empiezan en 1 y no tienen saltos ni duplicados.
+[ ] Cada fase tiene mensajes y su Orden empieza en 1, sin saltos ni duplicados.
+[ ] Los destinatarios son TODOS o códigos existentes, separados por comas.
+[ ] Los textos y títulos obligatorios están completos.
+[ ] Los secretos para la organizador están en Guia o Notas admin.
+[ ] Ninguna pista depende de un personaje eliminado o de una información
+    que los jugadores nunca recibirán.
+[ ] La solución coincide con horarios, coartadas y pruebas de la historia.
+[ ] La petición de acusaciones y la solución son mensajes separados.
+[ ] No he puesto fórmulas, celdas combinadas, contraseñas ni datos Telegram.
+
+Mantén cada Texto y cada Ficha privada por debajo de 4000 caracteres.
+Algunos emojis cuentan como dos: deja margen o usa menos emojis.
+Para textos largos, crea varios mensajes y vuelve a numerar el orden.
+El archivo debe ocupar menos de 5 MB. La plantilla admite hasta 3000 filas
+y 30 columnas por hoja; para una partida normal no necesitarás acercarte
+a estos límites.
+
+
+9. QUÉ HACER SI HAY UN ERROR
+
+Andrea te indicará el mensaje del importador, que identifica hoja y fila.
+La fila es el número que aparece a la izquierda en Excel; los encabezados
+ocupan la fila 1.
+
+«Mensajes, fila 7: completa Texto.»
+  Abre Mensajes, busca la fila 7 y escribe el texto que falta.
+
+«Personajes, fila 3: usa un código único.»
+  Dos personajes tienen el mismo código. Cambia uno y revisa sus destinatarios.
+
+«Mensajes, fila 5: usa TODOS solo, o códigos existentes…»
+  Comprueba la ortografía de los códigos y sepáralos con comas.
+
+«Numera Orden en fase 2 desde 1 sin saltos ni duplicados.»
+  Revisa todos los mensajes de fase 2: deben tener Orden 1, 2, 3…
+  El número de fila de Excel no es el número de Orden.
+
+Guarda la copia corregida y entrégasela de nuevo a Andrea.
+
+
+10. DE LA PLANTILLA A LA PARTIDA
+
+1. Entrega el Excel terminado a Andrea para importarlo.
+2. Cuando te confirme que está listo, abre Telegram y envía /control al bot.
+3. Revisa título, número de personajes, fases y mensajes. Pulsa Confirmar partida.
+4. Los jugadores abren su propia chat privada con el bot y pulsan /start.
+5. En Jugadores, asigna un personaje a cada persona.
+6. Comprueba las asignaciones antes de Autorizar fichas privadas: después
+   quedarán bloqueadas. Envía cada ficha con Enviar próximo.
+7. Abre la primera fase. Lee la vista previa y envía cada mensaje cuando quieras.
+
+Modificar el Excel después de importarlo no cambia la partida guardada.
+Para cambiar la historia, Andrea debe volver a importarla cuando no haya
+una partida abierta. Antes de autorizar fichas puedes usar Descartar preparación.
+
+Para repetir una prueba con la MISMA historia, usa Interrumpir y reiniciar
+partida y confirma. Si ya terminó, usa Reiniciar partida. Se crea una nueva
+partida con todos los personajes libres. Los jugadores siguen registrados
+y los mensajes que ya recibieron permanecen en sus chats.
+
+Tú decides todos los envíos. No hay temporizadores ni avance automático.
