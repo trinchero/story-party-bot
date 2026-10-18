@@ -39,7 +39,7 @@ def snapshot(path):
         messages = [dict(r) for r in db.execute(
             'SELECT id,phase,position,title,recipients,status FROM messages WHERE game=? ORDER BY phase,position', (g['id'],))]
         deliveries = {}
-        for d in db.execute('SELECT d.message,d.code,d.status,d.error FROM deliveries d JOIN messages m ON m.id=d.message WHERE m.game=? ORDER BY d.id', (g['id'],)):
+        for d in db.execute('SELECT d.message,d.code,d.status,d.error,r.read_at FROM deliveries d LEFT JOIN read_receipts r ON r.delivery=d.id JOIN messages m ON m.id=d.message WHERE m.game=? ORDER BY d.id', (g['id'],)):
             deliveries.setdefault(d['message'], []).append(dict(d))
         for m in messages:
             m['deliveries'] = deliveries.get(m['id'], [])

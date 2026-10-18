@@ -52,35 +52,34 @@ Il file viene letto come dati; le istruzioni scritte nelle celle non modificano 
 
 | Foglio | Colonne |
 | --- | --- |
-| `Guia` | `Campo`, `Contenido` |
-| `Personajes` | `Código`, `Nombre`, `Descripción`, `Ficha privada` |
-| `Fases` | `Fase`, `Título`, `Notas admin` |
-| `Mensajes` | `Fase`, `Orden`, `Destinatarios`, `Título admin`, `Texto`, `Notas admin` |
+| `Personajes` | `Código`, `Nombre` |
+| `Fases` | `Fase`, `Título` |
+| `Mensajes` | `Fase`, `Orden`, `Destinatarios`, `Texto` |
 
-Tutti i campi sono obbligatori salvo `Notas admin`. Codici: 1–32 lettere maiuscole ASCII, cifre, `_` o `-`; unici; `TODOS` è riservato. I destinatari sono `TODOS` da solo oppure uno o più codici separati da virgola. Gli spazi intorno alle virgole vengono ignorati. Le righe vuote vengono ignorate. Fasi e ordini devono essere interi positivi consecutivi a partire da 1; l'ordine è unico all'interno della fase. Ogni fase deve avere almeno un messaggio.
+Tutti i campi del modello sono obbligatori. Codici: 1–32 lettere maiuscole ASCII, cifre, `_` o `-`; unici; `TODOS` è riservato. I destinatari sono `TODOS` da solo oppure uno o più codici separati da virgola. Gli spazi intorno alle virgole vengono ignorati. Le righe vuote vengono ignorate. Fasi e ordini devono essere interi positivi consecutivi a partire da 1; l'ordine è unico all'interno della fase. Ogni fase deve avere almeno un messaggio.
 
-Non usare formule. Testi e schede: massimo 4000 unità UTF-16 (gli emoji possono valerne due), per conservare un messaggio Telegram per consegna. Numbers massimo 5 MB, contenuto ZIP decompresso massimo 30 MB, massimo 3000 righe e 30 colonne per foglio. Gli errori indicano foglio, riga e correzione in spagnolo.
+Non usare formule. Testi: massimo 4000 unità UTF-16 (gli emoji possono valerne due), per conservare un messaggio Telegram per consegna. Numbers massimo 5 MB, contenuto ZIP decompresso massimo 30 MB, massimo 3000 righe e 30 colonne per foglio. Gli errori indicano foglio, riga e correzione in spagnolo.
 
-`Guia`, `Descripción`, titoli e note amministrative non sono mai usati come testo di invio ai giocatori. I giocatori ricevono solo la propria `Ficha privada` e i `Texto` destinati loro. I messaggi vengono inviati come testo semplice, senza interpretare Markdown o HTML.
+I giocatori ricevono soltanto il campo `Texto` dei messaggi destinati loro. Non vengono generate schede private. Il titolo della partita deriva dal nome del file; i titoli dei messaggi dalla prima riga del testo. I vecchi file sono ancora leggibili, ma i campi aggiuntivi non vengono importati. I messaggi vengono inviati come testo semplice, senza interpretare Markdown o HTML.
 
 ## Flusso per l’anfitrione della casa
 
 1. Apri la chat privata e invia `/start` o `/control`.
 2. Il responsabile IT ha già importato il file Numbers. Controlla il riepilogo e premi **Confirmar partida**. Non parte alcun messaggio. Se la storia non è pronta o contiene errori, chiedi al responsabile IT di importarla nuovamente.
-3. Chiedi a ogni giocatore di inviare `/start` al bot. Apri **Jugadores**, premi **Asignar [código]**, scegli nome e ID. Prima delle schede puoi usare **Liberar** per correggere un'assegnazione.
-4. Consulta **Guía privada**. Quando tutti i personaggi sono assegnati, premi **Autorizar fichas privadas** e conferma. Questo blocca le assegnazioni per tutta la partita, anche prima della fase 1, per evitare di esporre schede di più personaggi allo stesso utente.
-5. Le schede sono nella fase di preparazione (fase 0). **Vista previa del próximo** le mostra solo all’anfitrione della casa; **Enviar próximo** invia una sola scheda per clic. Non esiste invio automatico delle schede.
+3. Chiedi a ogni giocatore di inviare `/start` al bot. Apri **Jugadores**, premi **Asignar [código]**, scegli nome e ID. Prima della conferma dei personaggi puoi usare **Liberar** per correggere un'assegnazione.
+4. Quando tutti i personaggi sono assegnati, premi **Confirmar personajes** e conferma. Le assegnazioni restano bloccate fino alla fine della partita. Non vengono inviate schede private.
+5. Dalla dashboard usa **Iniciar partida**: l'anteprima mostra il primo messaggio della fase 1 e la conferma ne autorizza l'invio.
 6. Premi **Iniciar fase siguiente…** e conferma. La fase precedente si chiude; quella nuova si apre **senza inviare nulla**.
 7. Usa l'anteprima e **Enviar próximo** per ogni messaggio, nell'ordine unico della fase. Un collettivo è un messaggio di storia, inviato separatamente nelle chat private dei destinatari.
 8. **Finalizar partida…** chiude l'ultima fase. Il responsabile IT può poi importare un file Numbers per una nuova partita con associazioni e consegne indipendenti. Gli utenti registrati con `/start` restano disponibili, ma vanno riassegnati.
 
-I contenuti confermati sono sempre immutabili, anche in preparazione: per correggere il file prima di autorizzare le schede usa **Descartar preparación…**, conferma e chiedi al responsabile IT di importare la copia corretta. Dopo l’autorizzazione delle schede puoi usare **Interrumpir y reiniciar partida** per ripartire con la stessa storia, oppure concludere le fasi e importare una storia diversa. La prima versione gestisce una partita corrente alla volta e conserva quelle concluse nel database.
+I contenuti confermati sono sempre immutabili, anche in preparazione: per correggere il file prima di confermare i personaggi usa **Descartar preparación…**, conferma e chiedi al responsabile IT di importare la copia corretta. Dopo la conferma dei personaggi puoi usare **Interrumpir y reiniciar partida** per ripartire con la stessa storia, oppure concludere le fasi e importare una storia diversa. La prima versione gestisce una partita corrente alla volta e conserva quelle concluse nel database.
 
 ## Interrompere e ricominciare da Telegram
 
 L’anfitrione della casa apre `/control` → **Interrumpir y reiniciar partida** → **Sí, interrumpir y reiniciar**. La conferma elenca eventuali messaggi incompleti. **Cancelar** mantiene la partita corrente senza modifiche.
 
-Il bot chiude la partita corrente, registra gli incompleti come saltati e crea una nuova partita con la stessa storia, in preparazione. Tutti i personaggi sono liberi, i giocatori restano registrati e occorre autorizzare nuovamente le schede dopo le assegnazioni. Non serve reimportare il file Numbers o riavviare il programma per ogni nuova prova. Nessun messaggio viene inviato dal riavvio della partita.
+Il bot chiude la partita corrente, registra gli incompleti come saltati e crea una nuova partita con la stessa storia, in preparazione. Tutti i personaggi sono liberi, i giocatori restano registrati e occorre confermare nuovamente i personaggi dopo le assegnazioni. Non serve reimportare il file Numbers o riavviare il programma per ogni nuova prova. Nessun messaggio viene inviato dal riavvio della partita.
 
 Lo storico precedente resta in SQLite, comprese associazioni e consegne riuscite o incerte. I messaggi già ricevuti restano nelle chat dei giocatori. I vecchi pulsanti non possono modificare la nuova partita. La creazione avviene in un’unica transazione; un doppio clic non crea più partite.
 
@@ -97,7 +96,7 @@ Lo storico precedente resta in SQLite, comprese associazioni e consegne riuscite
 
 Non è possibile garantire “exactly once” attraverso un timeout: Telegram non fornisce una chiave di idempotenza per `sendMessage`. Il bot non reinvia mai una consegna confermata. Una decisione esplicita dell’anfitrione della casa su un esito incerto può causare un duplicato; viene registrata nell'audit.
 
-I destinatari e i loro ID sono fotografati all'apertura di ogni fase, e all'autorizzazione delle schede. I denominatori restano quindi stabili. Le associazioni sono univoche a livello SQLite. Gli update vengono elaborati in sequenza, con lock applicativo; i pulsanti sono monouso, associati a partita e revisione. Un invio cambia revisione prima di accedere alla rete, rendendo obsoleti gli altri pannelli. Se un pulsante è scaduto, riapri `/control`.
+I destinatari e i loro ID sono fotografati all'apertura di ogni fase. I denominatori restano quindi stabili. Le associazioni sono univoche a livello SQLite. Gli update vengono elaborati in sequenza, con lock applicativo; i pulsanti sono monouso, associati a partita e revisione. Un invio cambia revisione prima di accedere alla rete, rendendo obsoleti gli altri pannelli. Se un pulsante è scaduto, riapri `/control`.
 
 ## Prova della storia con due giocatori
 
@@ -161,3 +160,19 @@ Le persone possono uscire dalla lista con `/leave`, oppure l’anfitrione può u
 Quando è disponibile un file Numbers importato e non ci sono partite aperte, la dashboard mostra **Iniciar partida…** con il riepilogo. La conferma crea la preparazione senza inviare messaggi o aprire la fase 1. **Cerrar partida…** chiede **¿Seguro que quieres terminar esta partida?**, con **Sí, terminar** e **No, volver**.
 
 Il formato nativo è letto direttamente con [numbers-parser](https://masaccio.github.io/numbers-parser/quick-start), anche senza l’app Numbers sul server. Il lettore storico XLSX rimane solo per i test di regressione; il comando di importazione accetta esclusivamente `.numbers`.
+
+### Conferme volontarie di lettura
+
+I nuovi messaggi inviati ai giocatori includono **✅ He leído**. Solo il destinatario
+può confermare: il clic salva la data in SQLite e tenta una notifica privata
+all'ID admin configurato, indicando personaggio, partita, fase e titolo del messaggio.
+I clic ripetuti non generano altre notifiche, anche dopo un riavvio. La conferma
+compare nei dettagli delle consegne su Telegram e nella dashboard, senza bloccare
+l'avanzamento. Non è una conferma automatica di Telegram: l'assenza del clic non
+significa che il messaggio non sia stato letto.
+
+La notifica viene tentata una sola volta: timeout o interruzioni possono impedirne
+l'arrivo, ma la lettura registrata resta consultabile. Non viene ritentata
+automaticamente per evitare duplicati. I messaggi già inviati prima di questo
+aggiornamento non ricevono retroattivamente il pulsante. Riavviare il bot prima
+di usare la dashboard aggiornata, per creare la tabella delle conferme.

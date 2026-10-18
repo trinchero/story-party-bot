@@ -1,4 +1,5 @@
 """No automatic retries: a timeout cannot prove whether Telegram accepted a send."""
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest, Forbidden, RetryAfter, TelegramError
 
 
@@ -16,8 +17,10 @@ async def _send_next(store, bot, mid, retry=False):
             continue
         with store.transaction():
             store.db.execute("UPDATE deliveries SET status='sending',error=NULL WHERE id=?", (delivery['id'],))
+            token = store.receipt_token(delivery['id'])
         try:
-            sent = await bot.send_message(chat_id=delivery['player'], text=message['body'], protect_content=True)
+            sent = await bot.send_message(chat_id=delivery['player'], text=message['body'], protect_content=True,
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('✅ He leído', callback_data='read:' + token)]]))
         except (Forbidden, BadRequest, RetryAfter) as exc:
             # Do not persist raw exception strings: they may contain sensitive data.
             with store.transaction():

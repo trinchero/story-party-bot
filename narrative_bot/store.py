@@ -20,6 +20,7 @@ class Store:
         store.db.row_factory = sqlite3.Row
         store.db.execute('PRAGMA foreign_keys=ON')
         store.db.execute('CREATE TABLE IF NOT EXISTS withdrawn_players(player INTEGER PRIMARY KEY)')
+        store.receipt_schema()
         return store
 
     @contextmanager
@@ -77,8 +78,32 @@ class Store:
                 id INTEGER PRIMARY KEY, game INTEGER, action TEXT, detail TEXT,
                 created TEXT DEFAULT CURRENT_TIMESTAMP);
         ''')
+        self.receipt_schema()
         # The process lock must be held before opening the production database.
         self.db.execute("UPDATE deliveries SET status='uncertain',error='Interrupción durante el envío' WHERE status='sending'")
+
+    def receipt_schema(self):
+        self.db.execute("""CREATE TABLE IF NOT EXISTS read_receipts(
+            delivery INTEGER PRIMARY KEY REFERENCES deliveries(id),
+            token TEXT UNIQUE NOT NULL, read_at TEXT, notification TEXT)
+        """)
+
+    def receipt_token(self, delivery):
+        self.db.execute('INSERT OR IGNORE INTO read_receipts(delivery,token) VALUES(?,?)',
+                        (delivery, secrets.token_urlsafe(24)))
+        return self.db.execute('SELECT token FROM read_receipts WHERE delivery=?', (delivery,)).fetchone()['token']
+
+    def confirm_read(self, token, player):
+        row = self.db.execute("""SELECT r.*,d.player,d.code,m.title,m.phase,g.title AS game_title
+            FROM read_receipts r JOIN deliveries d ON d.id=r.delivery
+            JOIN messages m ON m.id=d.message JOIN games g ON g.id=m.game
+            WHERE r.token=? AND d.player=?""", (token, player)).fetchone()
+        if not row:
+            raise RuleError('Esta confirmación no te corresponde.')
+        if row['read_at']:
+            return None
+        self.db.execute("UPDATE read_receipts SET read_at=CURRENT_TIMESTAMP,notification='attempted' WHERE delivery=?", (row['delivery'],))
+        return dict(row)
 
     @contextmanager
     def transaction(self):
@@ -205,9 +230,9 @@ class Store:
     def authorize_cards(self, prepare_cards=True):
         g = self.game()
         if g['cards'] or g['status'] != 'preparing':
-            raise RuleError('Las fichas ya están autorizadas.')
+            raise RuleError('Los personajes ya están confirmados.')
         self.snapshot(0, [(i, 'Ficha: ' + r['Nombre'], r['Ficha privada'], [r['Código']])
-                          for i, r in enumerate(self.content()['Personajes'], 1)] if prepare_cards else [])
+                          for i, r in enumerate(self.content()['Personajes'], 1)] if prepare_cards and all(r.get('Ficha privada') for r in self.content()['Personajes']) else [])
         self.db.execute('UPDATE games SET cards=1 WHERE id=?', (g['id'],))
         self.bump('authorize_cards')
 
@@ -227,7 +252,7 @@ class Store:
         return next((r for r in self.messages() if r['status'] == 'pending'), None)
 
     def deliveries(self, mid):
-        return self.rows('SELECT * FROM deliveries WHERE message=? ORDER BY id', (mid,))
+        return self.rows('SELECT d.*,r.read_at FROM deliveries d LEFT JOIN read_receipts r ON r.delivery=d.id WHERE d.message=? ORDER BY d.id', (mid,))
 
     def incomplete(self):
         return [r for r in self.messages() if r['status'] == 'pending']

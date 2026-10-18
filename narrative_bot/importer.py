@@ -76,7 +76,8 @@ def parse_excel(data: bytes) -> dict:
     return validate_tables(tables)
 
 
-def validate_tables(tables):
+def validate_tables(tables, headers=None):
+    headers = headers or HEADERS
     errors = []
 
     def error(sheet, row, correction):
@@ -86,7 +87,7 @@ def validate_tables(tables):
         if not records:
             error(sheet, 2, 'añade al menos una fila.')
         for r in records:
-            for h in HEADERS[sheet]:
+            for h in headers[sheet]:
                 if h != 'Notas admin' and not r[h]:
                     error(sheet, r['row'], f'completa {h}.')
             for h in ('Texto', 'Ficha privada'):
@@ -148,6 +149,11 @@ def parse_numbers(data: bytes) -> dict:
     from pathlib import Path
     if len(data) > 5_000_000:
         raise InvalidWorkbook('Archivo, fila 1: usa un archivo Numbers de menos de 5 MB.')
+    required = {
+        'Personajes': ['Código', 'Nombre'],
+        'Fases': ['Fase', 'Título'],
+        'Mensajes': ['Fase', 'Orden', 'Destinatarios', 'Texto'],
+    }
     errors, tables = [], {}
     def error(sheet, row, correction):
         errors.append(f'{sheet}, fila {row}: {correction}')
@@ -159,7 +165,7 @@ def parse_numbers(data: bytes) -> dict:
             path = Path(folder) / 'story.numbers'
             path.write_bytes(data)
             document = Document(path)
-            for name, headers in HEADERS.items():
+            for name, headers in required.items():
                 matches = [s for s in document.sheets if s.name == name]
                 if len(matches) != 1:
                     error(name, 1, 'añade una sola hoja con este nombre.')
@@ -198,4 +204,12 @@ def parse_numbers(data: bytes) -> dict:
         raise InvalidWorkbook('Archivo, fila 1: guarda un archivo .numbers válido, sin contraseña y como archivo único (no paquete).') from exc
     if errors:
         raise InvalidWorkbook('\n'.join(errors))
-    return validate_tables(tables)
+    tables = validate_tables(tables, required)
+    # Keep the internal story shape compatible with previously stored games.
+    tables['Guia'] = []
+    for row in tables['Fases']:
+        row['Notas admin'] = ''
+    for row in tables['Mensajes']:
+        row['Título admin'] = row['Texto'].splitlines()[0][:70]
+        row['Notas admin'] = ''
+    return tables

@@ -70,7 +70,7 @@ function renderMessages(data){
   const summary=el('summary');summary.append(el('span',`${m.position}. ${m.title}`,'message-title'),el('span',sent?'Enviado':attention?'Necesita atención':'Pendiente',`badge ${sent?'sent':attention?'attention':''}`));row.append(summary);
   row.append(el('div',`Para: ${m.recipients}`,'delivery'));
   if(m.status==='skipped')row.append(el('div','Mensaje saltado. No se enviará.','delivery'));
-  for(const d of m.deliveries){const p=data.players.find(p=>p.code===d.code);row.append(el('div',`${p?.name||d.code} · ${labels[d.status]||d.status}${d.error?' · '+d.error:''}`,'delivery'));}
+  for(const d of m.deliveries){const p=data.players.find(p=>p.code===d.code);row.append(el('div',`${p?.name||d.code} · ${labels[d.status]||d.status}${d.read_at?' · ✅ Lectura confirmada':d.status==='sent'?' · Lectura sin confirmar':''}${d.error?' · '+d.error:''}`,'delivery'));}
   if(!m.deliveries.length)row.append(el('div','Los destinatarios se fijarán al abrir la fase.','delivery'));
   return row;
  }));

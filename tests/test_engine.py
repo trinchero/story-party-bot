@@ -360,7 +360,7 @@ async def test_finished_game_has_restart_button(store):
     buttons = [b for call in u.message.reply_text.call_args_list
                if call.kwargs.get('reply_markup')
                for row in call.kwargs['reply_markup'].inline_keyboard for b in row]
-    token = next(b.callback_data for b in buttons if b.text == 'Reiniciar partida')
+    token = next(b.callback_data for b in buttons if b.text == 'Volver a jugar')
     prompt = update(999, token=token)
     await ui.callback(prompt, context)
     confirm = prompt.message.reply_text.call_args.kwargs['reply_markup'].inline_keyboard[0][0]
@@ -371,3 +371,36 @@ async def test_finished_game_has_restart_button(store):
     assert store.game()['content'] == old['content']
     assert not store.assignments()
     context.bot.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_compact_control_and_details(store):
+    await phase_one(store)
+    ui = Interface(store, 999)
+    u = update(999)
+    await ui.control(u, None)
+    u.message.reply_text.assert_awaited_once()
+    call = u.message.reply_text.call_args
+    assert len(call.args[0]) < 1800
+    assert 'Notas privadas' not in call.args[0]
+    buttons = [b for row in call.kwargs['reply_markup'].inline_keyboard for b in row]
+    assert [b.text for b in buttons] == ['▶️ Enviar', '📊 Estado']
+    detail = next(b for b in buttons if b.text == '📊 Estado')
+    other = update(101, token=detail.callback_data)
+    await ui.callback(other, None)
+    other.message.reply_text.assert_not_awaited()
+    admin = update(999, token=detail.callback_data)
+    await ui.callback(admin, None)
+    assert 'Entregas aceptadas' in admin.message.reply_text.call_args_list[0].args[0]
+
+
+@pytest.mark.asyncio
+async def test_compact_control_uncertain_uses_review(store):
+    bot = await phase_one(store)
+    bot.send_message.side_effect = TimedOut()
+    await send_next(store, bot, store.next_message()['id'])
+    u = update(999)
+    await Interface(store, 999).control(u, None)
+    buttons = [b.text for row in u.message.reply_text.call_args.kwargs['reply_markup'].inline_keyboard for b in row]
+    assert '⚠️ Revisar entrega' in buttons
+    assert '▶️ Enviar' not in buttons

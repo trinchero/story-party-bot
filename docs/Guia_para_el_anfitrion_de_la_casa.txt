@@ -1,22 +1,39 @@
-GUÍA PARA PREPARAR LA HISTORIA EN NUMBERS
+PREPARAR TU HISTORIA EN NUMBERS
 
-Abre TEST_BOT_Telegram_2_personajes_historia_independiente.numbers. Edita y guarda con Cmd+S. No necesitas exportar a otro formato.
+Abre el archivo de examples y guarda una copia con el nombre de tu historia.
+Solo hay tres pestañas. No cambies los nombres de las columnas.
 
-Conserva los nombres de las hojas y los encabezados. Usa una sola tabla por hoja.
+1. PERSONAJES
+Código: un identificador único en mayúsculas, por ejemplo VERA.
+Nombre: el nombre que quieres ver al asignar el personaje, por ejemplo Vera.
+Una fila por personaje. No hay fichas privadas que completar aquí.
 
-Guia: trama e instrucciones privadas. Nunca se envía a los jugadores.
-Personajes: un código único en MAYÚSCULAS, nombre, descripción y ficha privada por personaje.
-Fases: numera desde 1, sin saltos. Añade título y notas para ti.
-Mensajes: una fila por mensaje. Fase indica cuándo se usa; Orden empieza en 1 dentro de cada fase. Destinatarios: TODOS, un código o varios códigos separados por comas. Título admin y Notas admin son para ti. Texto es lo que se enviará.
+2. FASES
+Fase: 1, 2, 3… sin saltos.
+Título: un nombre breve, por ejemplo Bienvenida, Misiones o Final.
 
-La fase 1 puede tener un solo mensaje de bienvenida para TODOS. Desde la fase 2 puedes combinar mensajes privados y colectivos en el orden deseado. Si eliminas un mensaje, vuelve a numerar Orden sin huecos.
+3. MENSAJES
+Una fila por mensaje, con cuatro datos:
+Fase: el número de una fase de la pestaña Fases.
+Orden: 1, 2, 3… dentro de esa fase. Empieza otra vez en 1 en cada fase.
+Destinatarios: TODOS, un código como VERA, o varios separados por comas.
+Texto: exactamente lo que deben recibir. Puedes usar varias líneas.
 
-No uses fórmulas ni celdas combinadas en las tablas de datos. Guarda como archivo Numbers único, sin contraseña. Entrega ese mismo archivo al responsable técnico para importarlo.
+Ejemplo:
+Fase | Orden | Destinatarios | Texto
+1    | 1     | TODOS        | Bienvenidos al Cine Aurora…
+2    | 1     | VERA         | Tu misión es…
+2    | 2     | BRUNO        | Tu misión es…
+2    | 3     | TODOS        | Una nueva pista…
 
-EN LA DASHBOARD
-Asignaciones: asigna o libera personajes. Cuando estén todos, confirma para bloquearlos.
-Partida: Iniciar partida muestra una vista previa y, al confirmar, envía el primer mensaje de la fase 1.
-Mensajes: consulta el avance por fase y abre cada mensaje para ver las entregas.
-Terminar partida pide confirmación y conserva el historial.
+La fase 1 puede contener solo la bienvenida. Los mensajes personales van
+junto con los demás mensajes, en el orden en que quieras enviarlos.
+Cada fase necesita al menos un mensaje. No repitas números de orden.
+No pongas notas secretas para organizar la partida dentro de Texto:
+ese contenido se envía a los jugadores indicados.
 
-Las fichas de Personajes no se envían automáticamente con el flujo web. Incluye los textos privados que quieras enviar como filas de Mensajes en la fase correspondiente. Las notas y la guía siempre son privadas.
+Entrega el archivo .numbers al responsable técnico para importarlo.
+Editar el archivo no cambia una partida que ya está cargada.
+Confirma las asignaciones antes de iniciar: quedan bloqueadas hasta el final.
+Iniciar partida envía el primer mensaje de la fase 1. Después decides tú
+cuándo enviar cada mensaje y cuándo pasar de fase.

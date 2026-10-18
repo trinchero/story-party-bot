@@ -16,10 +16,10 @@ def test_native_story():
 @pytest.mark.parametrize('sheet,row,col,value,expected', [
     ('Personajes', 2, 0, 'VERA', 'código único'),
     ('Mensajes', 1, 2, 'INES', 'códigos existentes'),
-    ('Mensajes', 1, 4, '', 'completa Texto'),
+    ('Mensajes', 1, 3, '', 'completa Texto'),
     ('Mensajes', 1, 1, 2, 'sin saltos'),
     ('Fases', 1, 0, 1.5, 'entero positivo'),
-    ('Guia', 0, 0, 'Wrong', 'columnas'),
+    ('Personajes', 0, 0, 'Wrong', 'columnas'),
 ])
 def test_numbers_validation(tmp_path, sheet, row, col, value, expected):
     doc = Document(DEMO)
@@ -44,3 +44,27 @@ def test_numbers_invalid_archive_and_size():
     for data in [b'broken', b'x' * 5_000_001]:
         with pytest.raises(InvalidWorkbook, match='Archivo, fila 1'):
             parse_numbers(data)
+
+
+def test_minimal_model_and_no_generated_cards(tmp_path):
+    from narrative_bot.store import Store
+    doc = Document(DEMO)
+    assert [sheet.name for sheet in doc.sheets] == ['Personajes', 'Fases', 'Mensajes']
+    content = parse_numbers(DEMO.read_bytes())
+    assert 'Ficha privada' not in content['Personajes'][0]
+    assert content['Guia'] == []
+    assert content['Mensajes'][0]['Título admin'] == 'CINE AURORA'
+    store = Store(tmp_path / 'minimal.db')
+    try:
+        with store.transaction():
+            store.new_game(store.draft('Prueba', content))
+            for player, character in enumerate(content['Personajes'], 101):
+                store.register(player, character['Nombre'])
+                store.assign(character['Código'], player)
+            store.authorize_cards(prepare_cards=False)
+        assert store.messages() == []
+        with store.transaction():
+            store.advance()
+        assert store.next_message()['body'] == content['Mensajes'][0]['Texto']
+    finally:
+        store.db.close()
