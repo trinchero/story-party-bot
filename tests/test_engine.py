@@ -9,7 +9,7 @@ from narrative_bot.bot import Interface
 from narrative_bot.delivery import send_next
 from narrative_bot.store import RuleError, Store
 from conftest import DEMO
-from narrative_bot.local_import import stage_excel
+from narrative_bot.local_import import stage_numbers
 
 
 def cards(store):
@@ -219,12 +219,13 @@ async def test_import_summary_requires_confirmation(tmp_path):
     s = Store(tmp_path / 'import.sqlite3')
     ui = Interface(s, 999)
     u = update(999)
-    stage_excel(s, DEMO)
+    from test_numbers import DEMO as NATIVE_DEMO
+    stage_numbers(s, NATIVE_DEMO)
     context = SimpleNamespace(bot=SimpleNamespace(send_message=AsyncMock()))
     await ui.control(u, context)
     assert s.game() is None
     call = u.message.reply_text.call_args
-    assert 'Mensajes: 14' in call.args[0]
+    assert 'Mensajes: 7' in call.args[0]
     token = call.kwargs['reply_markup'].inline_keyboard[0][0].callback_data
     await ui.callback(update(999, token=token), context)
     assert s.game()['id'] == 1

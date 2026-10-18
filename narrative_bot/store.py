@@ -2,6 +2,8 @@
 import json
 import secrets
 import sqlite3
+import fcntl
+from pathlib import Path
 from contextlib import contextmanager
 
 
@@ -10,6 +12,38 @@ class RuleError(ValueError):
 
 
 class Store:
+    @classmethod
+    def connect_existing(cls, path):
+        """Connect without schema changes or crash recovery while the bot runs."""
+        store = cls.__new__(cls)
+        store.db = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=rw', uri=True, isolation_level=None)
+        store.db.row_factory = sqlite3.Row
+        store.db.execute('PRAGMA foreign_keys=ON')
+        store.db.execute('CREATE TABLE IF NOT EXISTS withdrawn_players(player INTEGER PRIMARY KEY)')
+        return store
+
+    @contextmanager
+    def operation(self):
+        path = self.db.execute('PRAGMA database_list').fetchone()['file']
+        with open(path + '.control.lock', 'a') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuleError('Hay una operación en curso. Espera y vuelve a intentarlo.') from None
+            try:
+                yield
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+
+    def close_game(self):
+        g = self.game()
+        if not g or g['status'] == 'finished':
+            raise RuleError('La partida ya está cerrada.')
+        for message in self.incomplete():
+            self.skip(message['id'], 'Cierre manual confirmado desde la web')
+        self.db.execute("UPDATE games SET status='finished' WHERE id=?", (g['id'],))
+        self.bump('web_close')
+
     def __init__(self, path):
         self.db = sqlite3.connect(path, isolation_level=None)
         self.db.row_factory = sqlite3.Row
@@ -18,6 +52,7 @@ class Store:
             PRAGMA synchronous=FULL;
             PRAGMA foreign_keys=ON;
             CREATE TABLE IF NOT EXISTS players(id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS withdrawn_players(player INTEGER PRIMARY KEY);
             CREATE TABLE IF NOT EXISTS games(
                 id INTEGER PRIMARY KEY, title TEXT NOT NULL, content TEXT NOT NULL,
                 phase INTEGER NOT NULL DEFAULT 0, revision INTEGER NOT NULL DEFAULT 0,
@@ -81,7 +116,7 @@ class Store:
             raise RuleError('Finaliza la partida actual antes de crear otra.')
         row = self.db.execute('SELECT * FROM drafts WHERE id=?', (draft,)).fetchone()
         if not row:
-            raise RuleError('Carga el Excel de nuevo.')
+            raise RuleError('Carga el Numbers de nuevo.')
         cur = self.db.execute('INSERT INTO games(title,content) VALUES(?,?)', (row['title'], row['content']))
         self.db.execute("INSERT OR REPLACE INTO settings VALUES('current',?)", (cur.lastrowid,))
         self.db.execute('DELETE FROM drafts WHERE id=?', (draft,))
@@ -116,8 +151,18 @@ class Store:
         return row['action'], row['payload']
 
     def register(self, uid, name):
+        restored = self.db.execute('DELETE FROM withdrawn_players WHERE player=?', (uid,)).rowcount
         result = self.db.execute('INSERT INTO players VALUES(?,?) ON CONFLICT(id) DO NOTHING', (uid, name))
-        return result.rowcount == 1
+        return result.rowcount == 1 or bool(restored)
+
+    def leave(self, uid):
+        if self.rows("SELECT a.player FROM assignments a JOIN games g ON g.id=a.game WHERE a.player=? AND g.status!='finished'", (uid,)):
+            raise RuleError('Tienes un personaje asignado. Pide al anfitrión que libere la asignación o cierre la partida antes de salir.')
+        if not self.rows('SELECT id FROM players WHERE id=?', (uid,)):
+            return
+        self.db.execute('INSERT OR IGNORE INTO withdrawn_players VALUES(?)', (uid,))
+        if self.game():
+            self.bump('player_left', uid)
 
     def assignments(self):
         return self.rows('SELECT a.*,p.name FROM assignments a JOIN players p ON p.id=a.player WHERE game=? ORDER BY code', (self.game()['id'],))
@@ -130,6 +175,8 @@ class Store:
             raise RuleError('Personaje desconocido.')
         if not self.rows('SELECT id FROM players WHERE id=?', (player,)):
             raise RuleError('El jugador debe enviar /start primero.')
+        if self.rows('SELECT player FROM withdrawn_players WHERE player=?', (player,)):
+            raise RuleError('Esta persona salió de la lista. Debe enviar /start para volver.')
         try:
             self.db.execute('INSERT INTO assignments VALUES(?,?,?)', (g['id'], code, player))
         except sqlite3.IntegrityError as exc:
@@ -155,12 +202,12 @@ class Store:
             self.db.executemany('INSERT INTO deliveries(message,code,player) VALUES(?,?,?)',
                                 [(cur.lastrowid, code, assigned[code]) for code in codes])
 
-    def authorize_cards(self):
+    def authorize_cards(self, prepare_cards=True):
         g = self.game()
         if g['cards'] or g['status'] != 'preparing':
             raise RuleError('Las fichas ya están autorizadas.')
         self.snapshot(0, [(i, 'Ficha: ' + r['Nombre'], r['Ficha privada'], [r['Código']])
-                          for i, r in enumerate(self.content()['Personajes'], 1)])
+                          for i, r in enumerate(self.content()['Personajes'], 1)] if prepare_cards else [])
         self.db.execute('UPDATE games SET cards=1 WHERE id=?', (g['id'],))
         self.bump('authorize_cards')
 

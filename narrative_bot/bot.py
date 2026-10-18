@@ -55,6 +55,17 @@ class Interface:
         async with self.lock:
             await self.control_view(update)
 
+    async def leave(self, update, context):
+        if update.effective_chat.type != 'private':
+            return
+        async with self.lock:
+            try:
+                with self.store.transaction():
+                    self.store.leave(update.effective_user.id)
+            except RuleError as exc:
+                return await self.say(update, str(exc))
+            await self.say(update, 'Has salido de la lista de personas disponibles. El historial se conserva. Envía /start para volver. Tu rol de anfitrión, si lo tienes, no cambia.')
+
     def message_details(self, m):
         text = f"{m['position']}. {m['title']} → {m['recipients']} — {LABELS[m['status']]}"
         for d in self.store.deliveries(m['id']):
@@ -111,7 +122,7 @@ class Interface:
     async def upload(self, update, context):
         # Files sent in Telegram are never downloaded or imported.
         if update.effective_chat.type == 'private':
-            await self.say(update, 'Los archivos Excel los prepara el responsable técnico fuera de Telegram. Usa /control si eres el anfitrión de la casa.')
+            await self.say(update, 'Los archivos Numbers los prepara el responsable técnico fuera de Telegram. Usa /control si eres el anfitrión de la casa.')
 
     async def draft_view(self, update):
         drafts = self.store.rows('SELECT * FROM drafts ORDER BY rowid DESC LIMIT 1')
@@ -148,7 +159,7 @@ class Interface:
         await self.say(update, text, buttons)
 
     async def choose_player(self, update, index, offset=0):
-        players = self.store.rows('SELECT * FROM players WHERE id NOT IN (SELECT player FROM assignments WHERE game=?) ORDER BY id LIMIT 16 OFFSET ?',
+        players = self.store.rows('SELECT * FROM players WHERE id NOT IN (SELECT player FROM withdrawn_players) AND id NOT IN (SELECT player FROM assignments WHERE game=?) ORDER BY id LIMIT 16 OFFSET ?',
                                  (self.store.game()['id'], offset))
         buttons = [(f"{r['name']} · {r['id']}", 'assign', f"{index}:{r['id']}") for r in players[:15]]
         if len(players) > 15:
@@ -234,7 +245,7 @@ class Interface:
         if action in ('send', 'retry'):
             await send_next(s, context.bot, int(payload), retry=action == 'retry')
         else:
-            with s.transaction():
+            with s.operation(), s.transaction():
                 if action == 'import':
                     s.new_game(payload)
                 elif action == 'cancel_import':
@@ -268,12 +279,13 @@ def build_application(token, admin_id, store):
     app = Application.builder().token(token).concurrent_updates(False).build()
     # A single handler accepts both /start and deep-link payloads (/start join).
     app.add_handler(CommandHandler('start', ui.start))
+    app.add_handler(CommandHandler('leave', ui.leave))
     app.add_handler(CommandHandler('control', ui.control))
     app.add_handler(CallbackQueryHandler(ui.callback))
     app.add_handler(MessageHandler(filters.Document.ALL, ui.upload))
 
     async def error_handler(update, context):
-        # Deliberately omit exception repr, request URL, Excel content and user data.
+        # Deliberately omit exception repr, request URL, Numbers content and user data.
         import logging
         logging.getLogger(__name__).error('Error de operación: %s', type(context.error).__name__)
         if update and ui.allowed(update):

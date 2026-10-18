@@ -6,7 +6,7 @@ import pytest
 from narrative_bot.importer import parse_excel
 from narrative_bot.store import Store
 
-DEMO = Path(__file__).resolve().parents[1] / 'examples' / 'Plantilla_juego_Telegram_demo.xlsx'
+DEMO = Path(__file__).resolve().parent / 'fixtures' / 'legacy_demo.xlsx'
 
 
 @pytest.fixture(autouse=True)

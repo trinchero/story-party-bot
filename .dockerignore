@@ -2,3 +2,5 @@
 !requirements.txt
 !narrative_bot/
 !narrative_bot/*.py
+!narrative_bot/web/
+!narrative_bot/web/*

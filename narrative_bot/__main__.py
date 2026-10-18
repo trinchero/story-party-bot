@@ -10,16 +10,22 @@ from .bot import build_application
 from .store import Store
 from .store import RuleError
 from .importer import InvalidWorkbook
-from .local_import import stage_excel
+from .local_import import stage_numbers
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Bot narrativo e importazione Excel per IT.')
+    parser = argparse.ArgumentParser(description='Bot narrativo e importazione Numbers per IT.')
     commands = parser.add_subparsers(dest='command')
-    importer = commands.add_parser('import', help='Importa un Excel locale da confermare in Telegram')
-    importer.add_argument('file', help='Percorso del file .xlsx')
+    importer = commands.add_parser('import', help='Importa un Numbers locale da confermare in Telegram')
+    importer.add_argument('file', help='Percorso del file .numbers')
+    dashboard = commands.add_parser('dashboard', help='Dashboard web locale di monitoraggio')
+    dashboard.add_argument('--port', type=int, default=8080)
     args = parser.parse_args()
     load_dotenv()
+    if args.command == 'dashboard':
+        from .dashboard import serve
+        serve(Path(os.getenv('DATABASE_PATH', 'data/game.sqlite3')).expanduser().resolve(), args.port)
+        return
     token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
     admin_id = 0
     if args.command != 'import':
@@ -46,10 +52,10 @@ def main():
         try:
             if args.command == 'import':
                 try:
-                    _, content = stage_excel(store, args.file)
+                    _, content = stage_numbers(store, args.file)
                 except (OSError, InvalidWorkbook, RuleError) as exc:
                     raise SystemExit(str(exc)) from None
-                print(f"Excel validato: {len(content['Personajes'])} personaggi, "
+                print(f"Numbers validato: {len(content['Personajes'])} personaggi, "
                       f"{len(content['Fases'])} fasi, {len(content['Mensajes'])} messaggi.")
                 print("Importazione pronta. Avvia il bot; l’anfitrione della casa può confermare il riepilogo con /control. Nessun messaggio inviato.")
                 return

@@ -73,6 +73,15 @@ def parse_excel(data: bytes) -> dict:
         wb.close()
     if errors:
         raise InvalidWorkbook('\n'.join(errors))
+    return validate_tables(tables)
+
+
+def validate_tables(tables):
+    errors = []
+
+    def error(sheet, row, correction):
+        errors.append(f'{sheet}, fila {row}: {correction}')
+
     for sheet, records in tables.items():
         if not records:
             error(sheet, 2, 'añade al menos una fila.')
@@ -130,3 +139,63 @@ def parse_excel(data: bytes) -> dict:
     tables['Fases'].sort(key=lambda r: r['Fase'])
     tables['Mensajes'].sort(key=lambda r: (r['Fase'], r['Orden']))
     return tables
+
+
+def parse_numbers(data: bytes) -> dict:
+    """Read native Numbers tables directly; no Excel conversion or application needed."""
+    from numbers_parser import Document
+    from tempfile import TemporaryDirectory
+    from pathlib import Path
+    if len(data) > 5_000_000:
+        raise InvalidWorkbook('Archivo, fila 1: usa un archivo Numbers de menos de 5 MB.')
+    errors, tables = [], {}
+    def error(sheet, row, correction):
+        errors.append(f'{sheet}, fila {row}: {correction}')
+    try:
+        with ZipFile(BytesIO(data)) as archive:
+            if sum(i.file_size for i in archive.infolist()) > 30_000_000:
+                raise InvalidWorkbook('Archivo, fila 1: reduce el tamaño descomprimido a 30 MB.')
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / 'story.numbers'
+            path.write_bytes(data)
+            document = Document(path)
+            for name, headers in HEADERS.items():
+                matches = [s for s in document.sheets if s.name == name]
+                if len(matches) != 1:
+                    error(name, 1, 'añade una sola hoja con este nombre.')
+                    continue
+                sheet = matches[0]
+                if len(sheet.tables) != 1:
+                    error(name, 1, 'usa una sola tabla en esta hoja.')
+                    continue
+                table = sheet.tables[0]
+                if table.num_rows > 3000 or table.num_cols > 30:
+                    error(name, 1, 'reduce la tabla a 3000 filas y 30 columnas.')
+                    continue
+                rows = table.rows()
+                actual = [str(c.value or '').strip() for c in rows[0]] if rows else []
+                if any(actual.count(h) != 1 for h in headers):
+                    error(name, 1, 'incluye una sola vez las columnas: ' + ', '.join(headers))
+                    continue
+                records = []
+                for number, cells in enumerate(rows[1:], 2):
+                    if all(c.value in (None, '') and not c.is_formula for c in cells):
+                        continue
+                    record = {'row': number}
+                    for h in headers:
+                        cell = cells[actual.index(h)]
+                        if cell.is_formula:
+                            error(name, number, f'sustituye la fórmula en {h} por texto o un número.')
+                        value = cell.value
+                        if isinstance(value, float) and value.is_integer():
+                            value = int(value)
+                        record[h] = str(value).strip() if value is not None else ''
+                    records.append(record)
+                tables[name] = records
+    except InvalidWorkbook:
+        raise
+    except Exception as exc:
+        raise InvalidWorkbook('Archivo, fila 1: guarda un archivo .numbers válido, sin contraseña y como archivo único (no paquete).') from exc
+    if errors:
+        raise InvalidWorkbook('\n'.join(errors))
+    return validate_tables(tables)

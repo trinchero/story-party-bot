@@ -5,6 +5,8 @@ from telegram import Update, User
 from telegram.ext import ExtBot
 
 from narrative_bot.bot import build_application
+from narrative_bot.bot import Interface
+from types import SimpleNamespace
 
 
 @pytest.mark.asyncio
@@ -50,3 +52,18 @@ def test_existing_player_registration_does_not_change_assignment(store):
     assert store.register(101, 'Changed name') is False
     assert store.db.total_changes == changes
     assert [dict(r) for r in store.assignments()] == before
+
+
+@pytest.mark.asyncio
+async def test_leave_uses_sender_identity_and_ignores_group(store):
+    ui = Interface(store, 999)
+    store.register(777, 'Leaving')
+    update = SimpleNamespace(effective_chat=SimpleNamespace(type='group'),
+                             effective_user=SimpleNamespace(id=777),
+                             effective_message=SimpleNamespace(reply_text=AsyncMock()))
+    await ui.leave(update, None)
+    assert not store.rows('SELECT * FROM withdrawn_players')
+    update.effective_chat.type = 'private'
+    await ui.leave(update, SimpleNamespace(args=['101']))
+    assert [r['player'] for r in store.rows('SELECT * FROM withdrawn_players')] == [777]
+    update.effective_message.reply_text.assert_awaited_once()

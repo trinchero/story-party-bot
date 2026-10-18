@@ -3,6 +3,11 @@ from telegram.error import BadRequest, Forbidden, RetryAfter, TelegramError
 
 
 async def send_next(store, bot, mid, retry=False):
+    with store.operation():
+        await _send_next(store, bot, mid, retry)
+
+
+async def _send_next(store, bot, mid, retry=False):
     with store.transaction():
         message = store.claim(mid, retry)
         store.bump('send_attempt', mid)

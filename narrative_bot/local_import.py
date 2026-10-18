@@ -1,16 +1,16 @@
 """Local IT import: validates and stages content without sending anything."""
 from pathlib import Path
 
-from .importer import InvalidWorkbook, parse_excel
+from .importer import InvalidWorkbook, parse_numbers
 from .store import RuleError
 
 
-def stage_excel(store, filename):
+def stage_numbers(store, filename):
     path = Path(filename)
-    if path.suffix.lower() != '.xlsx':
-        raise InvalidWorkbook('Archivo, fila 1: usa un archivo .xlsx.')
+    if path.suffix.lower() != '.numbers':
+        raise InvalidWorkbook('Archivo, fila 1: usa un archivo .numbers.')
     with path.open('rb') as file:
-        content = parse_excel(file.read(5_000_001))
+        content = parse_numbers(file.read(5_000_001))
     title = next((r['Contenido'] for r in content['Guia'] if r['Campo'] == 'Título'), path.stem)
     with store.transaction():
         game = store.game()
