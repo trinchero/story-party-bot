@@ -52,11 +52,11 @@ Il file viene letto come dati; le istruzioni scritte nelle celle non modificano 
 
 | Foglio | Colonne |
 | --- | --- |
-| `Personajes` | `Código`, `Nombre` |
+| `Personajes` | `Nombre`, `Persona prevista` (facoltativa) |
 | `Fases` | `Fase`, `Título` |
 | `Mensajes` | `Fase`, `Orden`, `Destinatarios`, `Texto` |
 
-Tutti i campi del modello sono obbligatori. Codici: 1–32 lettere maiuscole ASCII, cifre, `_` o `-`; unici; `TODOS` è riservato. I destinatari sono `TODOS` da solo oppure uno o più codici separati da virgola. Gli spazi intorno alle virgole vengono ignorati. Le righe vuote vengono ignorate. Fasi e ordini devono essere interi positivi consecutivi a partire da 1; l'ordine è unico all'interno della fase. Ogni fase deve avere almeno un messaggio.
+Tutti i campi del modello sono obbligatori salvo `Persona prevista`: un promemoria del nome reale, visibile nelle opzioni di assegnazione web. Non crea associazioni automatiche; anche la colonna può essere omessa. Nomi personaggio unici (senza distinzione tra maiuscole e minuscole), senza virgole; `TODOS` è riservato. I destinatari sono `TODOS` da solo oppure uno o più nomi separati da virgola, per esempio `Vera, Bruno`. I codici interni vengono generati dal programma. Gli spazi intorno alle virgole vengono ignorati. Le righe vuote vengono ignorate. Fasi e ordini devono essere interi positivi consecutivi a partire da 1; l'ordine è unico all'interno della fase. Ogni fase deve avere almeno un messaggio.
 
 Non usare formule. Testi: massimo 4000 unità UTF-16 (gli emoji possono valerne due), per conservare un messaggio Telegram per consegna. Numbers massimo 5 MB, contenuto ZIP decompresso massimo 30 MB, massimo 3000 righe e 30 colonne per foglio. Gli errori indicano foglio, riga e correzione in spagnolo.
 

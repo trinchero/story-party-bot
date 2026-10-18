@@ -53,7 +53,7 @@ def snapshot(path):
         messages.sort(key=lambda m: (m['phase'], m['position']))
         phases = [{'number': 0, 'title': 'Preparación · fichas privadas'}] + [
             {'number': r['Fase'], 'title': r['Título']} for r in content['Fases']]
-        players = [{'code': r['Código'], 'character': r['Nombre'],
+        players = [{'code': r['Código'], 'character': r['Nombre'], 'planned_person': r.get('Persona prevista', ''),
                     'name': assignments.get(r['Código'], {}).get('name'),
                     'person_id': assignments.get(r['Código'], {}).get('id'), 'counts': {}}
                    for r in content['Personajes']]

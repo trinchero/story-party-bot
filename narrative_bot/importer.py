@@ -2,6 +2,7 @@
 from io import BytesIO
 from itertools import islice
 import re
+import unicodedata
 from zipfile import ZipFile
 
 from openpyxl import load_workbook
@@ -150,7 +151,7 @@ def parse_numbers(data: bytes) -> dict:
     if len(data) > 5_000_000:
         raise InvalidWorkbook('Archivo, fila 1: usa un archivo Numbers de menos de 5 MB.')
     required = {
-        'Personajes': ['Código', 'Nombre'],
+        'Personajes': ['Nombre'],
         'Fases': ['Fase', 'Título'],
         'Mensajes': ['Fase', 'Orden', 'Destinatarios', 'Texto'],
     }
@@ -183,12 +184,16 @@ def parse_numbers(data: bytes) -> dict:
                 if any(actual.count(h) != 1 for h in headers):
                     error(name, 1, 'incluye una sola vez las columnas: ' + ', '.join(headers))
                     continue
+                if name == 'Personajes' and actual.count('Persona prevista') > 1:
+                    error(name, 1, 'incluye Persona prevista una sola vez.')
+                    continue
+                fields = headers + (['Persona prevista'] if name == 'Personajes' and 'Persona prevista' in actual else [])
                 records = []
                 for number, cells in enumerate(rows[1:], 2):
                     if all(c.value in (None, '') and not c.is_formula for c in cells):
                         continue
                     record = {'row': number}
-                    for h in headers:
+                    for h in fields:
                         cell = cells[actual.index(h)]
                         if cell.is_formula:
                             error(name, number, f'sustituye la fórmula en {h} por texto o un número.')
@@ -196,12 +201,47 @@ def parse_numbers(data: bytes) -> dict:
                         if isinstance(value, float) and value.is_integer():
                             value = int(value)
                         record[h] = str(value).strip() if value is not None else ''
+                    if name == 'Personajes' and 'Código' in actual:
+                        record['Código'] = str(cells[actual.index('Código')].value or '').strip()
                     records.append(record)
                 tables[name] = records
     except InvalidWorkbook:
         raise
     except Exception as exc:
         raise InvalidWorkbook('Archivo, fila 1: guarda un archivo .numbers válido, sin contraseña y como archivo único (no paquete).') from exc
+    if errors:
+        raise InvalidWorkbook('\n'.join(errors))
+    names, used_codes, aliases = {}, set(), {}
+    for row in tables['Personajes']:
+        name = row['Nombre']
+        key = unicodedata.normalize('NFC', name).casefold()
+        if not name or key == 'todos' or ',' in name or key in names:
+            error('Personajes', row['row'], 'usa un Nombre único, no vacío, sin comas y distinto de TODOS.')
+        names[key] = row
+        base = re.sub(r'[^A-Z0-9_-]', '_', unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode().upper())[:24] or 'PERSONA'
+        code = row.get('Código') or base
+        suffix = 2
+        while code in used_codes:
+            code = f'{base}_{suffix}'
+            suffix += 1
+        used_codes.add(code)
+        if row.get('Código'):
+            aliases[unicodedata.normalize('NFC', row['Código']).casefold()] = code
+        row['Código'] = code
+    for row in tables['Mensajes']:
+        recipients = [part.strip() for part in row['Destinatarios'].split(',')]
+        if len(recipients) == 1 and recipients[0].casefold() == 'todos':
+            row['Destinatarios'] = 'TODOS'
+            continue
+        resolved = []
+        for name in recipients:
+            key = unicodedata.normalize('NFC', name).casefold()
+            code = names[key]['Código'] if key in names else aliases.get(key)
+            if code is None or code in resolved:
+                error('Mensajes', row['row'], 'usa TODOS solo o nombres existentes de Personajes separados por comas, sin repetir.')
+            else:
+                resolved.append(code)
+        row['Destinatarios'] = ','.join(resolved)
     if errors:
         raise InvalidWorkbook('\n'.join(errors))
     tables = validate_tables(tables, required)

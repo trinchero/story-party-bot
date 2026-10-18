@@ -38,7 +38,7 @@ function renderPeople(data){
    }else{
     const select=el('select');select.className='role-select';select.setAttribute('aria-label','Personaje para '+p.name);
     const placeholder=el('option','Elegir personaje');placeholder.value='';select.append(placeholder);
-    for(const role of data.players.filter(r=>r.person_id===null)){const option=el('option',role.character);option.value=role.code;select.append(option);}
+    for(const role of data.players.filter(r=>r.person_id===null)){const option=el('option',role.character+(role.planned_person?' · Previsto: '+role.planned_person:''));option.value=role.code;select.append(option);}
     select.value=roleChoices.get(p.id)||'';
     const assign=el('button','Asignar','primary');assign.disabled=!select.value;
     select.addEventListener('change',()=>{roleChoices.set(p.id,select.value);assign.disabled=!select.value;});
@@ -49,7 +49,7 @@ function renderPeople(data){
   row.append(remove);return row;
  }));
  if(!data.people?.length)$('people-list').append(el('p','Para aparecer aquí, envía /start al bot.'));
- const free=data.players.filter(p=>p.person_id===null).map(p=>p.character);$('unassigned').textContent=data.game&&!data.game.assignments_open&&data.game.status!=='finished'?'Personajes confirmados. No se pueden cambiar hasta terminar la partida.':free.length?'Personajes sin asignar: '+free.join(', '):'';
+ const free=data.players.filter(p=>p.person_id===null).map(p=>p.character+(p.planned_person?' (previsto: '+p.planned_person+')':''));$('unassigned').textContent=data.game&&!data.game.assignments_open&&data.game.status!=='finished'?'Personajes confirmados. No se pueden cambiar hasta terminar la partida.':free.length?'Personajes sin asignar: '+free.join(', '):'';
 }
 function phaseState(data,number){
  const rows=data.messages.filter(m=>m.phase===number),done=rows.filter(m=>m.status==='completed').length;

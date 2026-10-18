@@ -4,8 +4,11 @@ Abre el archivo de examples y guarda una copia con el nombre de tu historia.
 Solo hay tres pestañas. No cambies los nombres de las columnas.
 
 1. PERSONAJES
-Código: un identificador único en mayúsculas, por ejemplo VERA.
 Nombre: el nombre que quieres ver al asignar el personaje, por ejemplo Vera.
+Usa nombres únicos, sin comas y distintos de TODOS.
+Persona prevista (opcional): el nombre real de la persona que tienes en mente.
+Puedes dejarlo vacío. Es solo un recordatorio; no asigna a nadie automáticamente.
+La asignación se hace y se confirma desde Asignaciones en la web.
 Una fila por personaje. No hay fichas privadas que completar aquí.
 
 2. FASES
@@ -16,14 +19,14 @@ Título: un nombre breve, por ejemplo Bienvenida, Misiones o Final.
 Una fila por mensaje, con cuatro datos:
 Fase: el número de una fase de la pestaña Fases.
 Orden: 1, 2, 3… dentro de esa fase. Empieza otra vez en 1 en cada fase.
-Destinatarios: TODOS, un código como VERA, o varios separados por comas.
+Destinatarios: TODOS, un nombre como Vera, o varios separados por comas.
 Texto: exactamente lo que deben recibir. Puedes usar varias líneas.
 
 Ejemplo:
 Fase | Orden | Destinatarios | Texto
 1    | 1     | TODOS        | Bienvenidos al Cine Aurora…
-2    | 1     | VERA         | Tu misión es…
-2    | 2     | BRUNO        | Tu misión es…
+2    | 1     | Vera         | Tu misión es…
+2    | 2     | Bruno        | Tu misión es…
 2    | 3     | TODOS        | Una nueva pista…
 
 La fase 1 puede contener solo la bienvenida. Los mensajes personales van
