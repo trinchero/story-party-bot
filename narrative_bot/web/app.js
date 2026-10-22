@@ -11,16 +11,17 @@ function render(data){
  if(gameId!==g?.id){gameId=g?.id;selected=g?.phase??0;openMessages.clear();}
  $('assignment-state').textContent=g&&g.status!=='finished'?(g.assignments_open?'Asignación pendiente':'Asignación completada') : '';
  $('story-title').textContent=data.draft?.title||g?.title||'Todavía no hay una historia preparada.';
- $('phase-title').textContent=g?(g.status==='finished'?'Partida terminada':g.phase===0?'Preparación':`Fase ${g.phase} · ${data.phases.find(p=>p.number===g.phase)?.title||''}`):'Preparar partida';
- const story=data.messages.filter(m=>m.phase>0),done=story.filter(m=>m.status==='completed').length,skipped=story.filter(m=>m.status==='skipped').length;
+ $('phase-title').textContent=data.draft?'Historia lista para preparar':g?(g.status==='finished'?'Partida terminada':g.phase===0?'Preparación':`Fase ${g.phase} · ${data.phases.find(p=>p.number===g.phase)?.title||''}`):'Preparar partida';
+ const story=data.draft?[]:data.messages.filter(m=>m.phase>0),done=story.filter(m=>m.status==='completed').length,skipped=story.filter(m=>m.status==='skipped').length;
  $('progress').replaceChildren();for(const [n,cls] of [[done,'done'],[skipped,'skipped']]){const part=el('span',undefined,cls);part.style.width=`${story.length?100*n/story.length:0}%`;$('progress').append(part);}
  $('progress').setAttribute('aria-label',`${done} completados, ${skipped} saltados de ${story.length}`);
- $('progress-text').textContent=g?`${done} de ${story.length} mensajes completados${skipped?` · ${skipped} saltados`:''}`:'';
+ $('progress-text').textContent=data.draft?`${data.draft.messages} mensajes preparados · Ninguno enviado`:g?`${done} de ${story.length} mensajes completados${skipped?` · ${skipped} saltados`:''}`:'';
  $('main-action').disabled=!g&&!data.draft;
- $('main-action').textContent=data.draft?'Iniciar partida':!g?'Esperando historia':g.status==='finished'?'Volver a jugar':g.phase===0?(g.assignments_open?'Ver asignaciones':'Iniciar partida'):'Ver mensajes';
- $('next-step').textContent=data.draft?`${data.draft.characters} personajes · ${data.draft.phases} fases. No se enviarán mensajes al iniciar.`:g?.status==='finished'?'Puedes volver a jugar con la misma historia.':g?.phase===0?(g.assignments_open?'Asigna y confirma los personajes en Asignaciones.':'Siguiente paso: iniciar la fase 1 y enviar el mensaje de bienvenida.'):g?'Los envíos se autorizan desde Telegram.':'';
+ $('main-action').textContent=data.draft?'Preparar partida':!g?'Esperando historia':g.status==='finished'?'Volver a jugar':g.phase===0?(g.assignments_open?'Ver asignaciones':'Iniciar partida'):'Ver mensajes';
+ $('next-step').textContent=data.draft?`${data.draft.characters} personajes · ${data.draft.phases} fases. Preparar la partida no envía mensajes.`:g?.status==='finished'?'Puedes volver a jugar con la misma historia.':g?.phase===0?(g.assignments_open?'Asigna y confirma los personajes en Asignaciones.':'Siguiente paso: iniciar la fase 1 y enviar el mensaje de bienvenida.'):g?'Los envíos se autorizan desde Telegram.':'';
  $('close-game').hidden=!g||g.status==='finished';
- renderPeople(data);renderMessages(data);
+ const visible=data.draft?{...data,players:[],messages:[],phases:[],people:(data.people||[]).map(p=>({...p,code:null}))}:data;
+ renderPeople(visible);renderMessages(visible);
 }
 function renderPeople(data){
  $('confirm-roles').hidden=!data.game?.assignments_open;
@@ -59,6 +60,17 @@ function phaseState(data,number){
  return `${status} · ${done}/${rows.length} completados`;
 }
 function renderMessages(data){
+ if(!data.phases.length){
+  const option=el('option','Sin fases disponibles');option.value='';
+  $('phase-select').replaceChildren(option);$('phase-select').disabled=true;
+  $('phase-state').textContent=data.draft?'Historia pendiente de preparación':'Todavía no hay una partida preparada';
+  $('messages').replaceChildren(el('p',data.draft
+   ?'Ve a Partida y pulsa «Preparar partida» para ver las fases y los mensajes. No se enviará ningún mensaje.'
+   :'Primero prepara una historia desde Partida.'));
+  return;
+ }
+ $('phase-select').disabled=false;
+ if(!data.phases.some(p=>p.number===Number(selected)))selected=data.phases[0].number;
  $('phase-state').textContent=data.game?phaseState(data,Number(selected)):'';
  $('phase-select').replaceChildren(...data.phases.map(p=>{const o=el('option',(p.number===0?'Fichas privadas':`Fase ${p.number} · ${p.title}`)+' — '+phaseState(data,p.number));o.value=p.number;return o;}));$('phase-select').value=selected;
  const messages=data.messages.filter(m=>m.phase===Number(selected));
@@ -94,8 +106,8 @@ function startDraft(){
  actionRequest={action:'start',game:state.game?.id||0,revision:state.game?.revision||0,draft:state.draft.id,confirmed:true};
  $('confirm-title').textContent='¿Preparar esta nueva partida?';
  $('confirm-description').textContent=`${state.draft.title} · ${state.draft.characters} personajes · ${state.draft.phases} fases`;
- $('confirm-pending').textContent='Después, asigna los personajes y autoriza las fichas desde Telegram. No se enviará ningún mensaje al confirmar.';
- $('execute-action').textContent='Sí, iniciar';$('action-error').textContent='';$('confirm-action').showModal();
+ $('confirm-pending').textContent='Después, asigna y confirma los personajes en Asignaciones. No se enviará ningún mensaje al preparar la partida.';
+ $('execute-action').textContent='Sí, preparar';$('action-error').textContent='';$('confirm-action').showModal();
 }
 $('close-game').addEventListener('click',()=>confirmAction('close'));
 
